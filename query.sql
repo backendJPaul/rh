@@ -25,24 +25,25 @@ create procedure fetchUser(
     in tf boolean
 )
 begin
-    select user.id, user.name, user.password from user inner join role on user.idRole = role.id where user.status = tf;
+    select user.id, user.name, user.password, role.name as role from user inner join role on user.idRole = role.id where user.status = tf;
 end //
 
 drop procedure if exists gotoIdUser;
 delimiter //
 create procedure gotoIdUser(
     in _id int,
-    in tf boolean
+    in _tf boolean
 )
 begin
-    select user.id, user.name, role.name as role from user inner join role on user.idRole = role.id where user.id = _id and user.status = tf;
+    select user.id, user.name, user.password, role.name as role from user inner join role on user.idRole = role.id where user.id = _id and user.status = _tf;
 end //
 
+call fetchUser(true);
 
 drop procedure if exists saveUser;
 delimiter //
 create procedure saveUser(
-    in _name varchar(35),
+   in _name varchar(35),
     in _password varchar(35),
     in _idRole int
 )
@@ -94,4 +95,3 @@ begin
     inner join role on user.idRole = role.id
     where user.name like concat("%",pattern,"%") and user.status = true;
 end //
-

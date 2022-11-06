@@ -1,13 +1,14 @@
 package com.jpaul;
 
-/**
- * Hello world!
- *
- */
 public class App 
 {
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
+    public static void main( String[] args ){
+        UserDAO userDAO = new UserDAO();
+        try{
+            userDAO.saveUser();
+        }
+        catch (Exception e){
+            System.out.println(e.toString());
+        }
     }
 }
