@@ -4,60 +4,80 @@ create table role(
     name varchar(35),
     primary key(id)
 );
-drop table if exists user;
-create table user (
-    id int auto_increment,
-    name varchar(35),
-    password varchar(35),
-    idRole int,
-    status boolean default true,
-    primary key(id),
-    foreign key(idRole) references role(id)
-);
 
 insert into role(name)values("admin");
 insert into role(name)values("saler");
 insert into role(name)values("view");
 
-drop procedure if exists fetchUser;
+
+drop table if exists user;
+create table user(
+    id int auto_increment,
+    name varchar(35),
+    password varchar(35),
+    status boolean default true,
+    idRole int,
+    primary key(id),
+    foreign key(idRole) references role(id)
+);
+
+drop procedure fetchUser;
 delimiter //
 create procedure fetchUser(
-    in tf boolean
+    in _status boolean
 )
 begin
-    select user.id, user.name, user.password, role.name as role from user inner join role on user.idRole = role.id where user.status = tf;
+    select user.id, user.name, user.password, role.name as role, user.status from user inner join role on user.idRole = role.id and status = _status;
 end //
 
-drop procedure if exists gotoIdUser;
+drop procedure gotoUserId;
 delimiter //
-create procedure gotoIdUser(
-    in _id int,
-    in _tf boolean
+create procedure gotoUserId(
+    in _status boolean,
+    in _id int
 )
 begin
-    select user.id, user.name, user.password, role.name as role from user inner join role on user.idRole = role.id where user.id = _id and user.status = _tf;
+    select user.id, user.name, user.password, role.name as role, user.status from user inner join role on user.idRole = role.id where user.id = _id and user.status = _status;
 end //
-
-call fetchUser(true);
 
 drop procedure if exists saveUser;
 delimiter //
 create procedure saveUser(
-   in _name varchar(35),
+    in _name varchar(35),
     in _password varchar(35),
     in _idRole int
 )
 begin
     insert into user(name,password,idRole)values(_name,_password,_idRole);
-    call gotoIdUser(LAST_INSERT_ID(),true);
+    call gotoUserId(true,LAST_INSERT_ID());
 end //
 
-call saveUser("admin","root",2);
-call saveUser("cesia","root",2);
+call saveUser("admin","root",1);
 call saveUser("mary","root",2);
 call saveUser("anabel","root",2);
 call saveUser("estrella","root",2);
 call saveUser("heidi","root",2);
+
+
+drop procedure if exists deleteUser;
+delimiter //
+create procedure deleteUser(
+    in _id int
+)
+begin
+    update user set user.status = false where user.id = _id;
+    call gotoUserId(false,_id);
+end //
+
+drop procedure if exists searchUser;
+create procedure searchUser(
+    in _pattern varchar(35)
+)
+begin
+    select user.id, user.name, user.password, role.name as role from user inner join role on user.idRole = role.id where user.name like concat('%',_pattern,'%') and user.status = true;
+
+end //
+
 
 drop procedure if exists updateUser;
 delimiter //
@@ -68,30 +88,11 @@ create procedure updateUser(
     in _idRole int
 )
 begin
-    update user set user.name = _name,
-                    user.password = _password,
-                    user.idRole = _idRole where user.id = _id and user.status = 1;
-    call gotoIdUser(_id,true);
-end //
+    update user set user.name = _name, user.password = _password, user.idRole = _idRole where user.id = _id;
+    call gotoUserId(true,_id);
+
+end//
 
 
-drop procedure if exists deleteUser;
-delimiter //
-create procedure deleteUser(
-    in _id int
-)
-begin
-    update user set user.status = false where user.id = _id;
-    call gotoIdUser(_id,false);
-end //
-
-drop procedure if exists searchUser;
-delimiter //
-create procedure searchUser(
-    in pattern varchar(35)
-)
-begin
-    select user.id, user.name, role.name as role from user
-    inner join role on user.idRole = role.id
-    where user.name like concat("%",pattern,"%") and user.status = true;
-end //
+call fetchUser(true);
+call updateUser(7,"roxana","root",3);
